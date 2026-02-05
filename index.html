@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KASH</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#FB6316",
+                        vibe: {
+                            light: "#f8fafc",
+                            dark: "#0f172a",
+                            card: "#1e293b",
+                            text: "#0f172a",
+                            sub: "#64748b"
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'vibe': '0 10px 30px -10px rgba(0,0,0,0.08)',
+                        'vibe-hover': '0 20px 40px -15px rgba(0,0,0,0.12)',
+                        'primary-glow': '0 10px 20px -5px rgba(249, 97, 21, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            overscroll-behavior-y: contain;
+        }
+        .mesh-gradient {
+            background-color: #FB6316;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(28,94%,67%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(321,81%,68%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(221,100%,70%,1) 0, transparent 50%);
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0"
+  }
+}
+</script>
+</head>
+<body class="bg-vibe-light dark:bg-vibe-dark text-vibe-text dark:text-white transition-colors duration-500 antialiased">
+    <div id="root"></div>
+</body>
+</html>

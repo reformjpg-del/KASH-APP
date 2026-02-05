@@ -1,0 +1,8 @@
+{
+  "name": "KASH - Comparador de Precios Comunitario",
+  "description": "Una aplicación moderna de comparación de precios impulsada por la comunidad, con gamificación, reportes en tiempo real y alertas inteligentes.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
