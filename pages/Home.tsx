@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MOCK_PRODUCTS, MOCK_PRICES, CATEGORIES_CONFIG, BCV_RATE } from '../constants';
+import { MOCK_PRODUCTS, MOCK_PRICES, CATEGORIES_CONFIG, BCV_RATE, MOCK_STORES } from '../constants';
 import { Product } from '../types';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const [activeBanner, setActiveBanner] = useState(0);
+  const [cart, setCart] = useState<string[]>([]);
+  const [savedStores, setSavedStores] = useState<string[]>([]);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -35,6 +37,11 @@ const Home: React.FC = () => {
   ];
 
   useEffect(() => {
+    const savedCart = JSON.parse(localStorage.getItem('vibe_cart') || '[]');
+    setCart(savedCart);
+    const savedS = JSON.parse(localStorage.getItem('vibe_saved_stores') || '[]');
+    setSavedStores(savedS);
+    
     const timer = setInterval(() => {
       setActiveBanner((prev) => (prev + 1) % banners.length);
     }, 5000);
@@ -50,6 +57,30 @@ const Home: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const toggleCart = (productId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    let newCart;
+    if (cart.includes(productId)) {
+      newCart = cart.filter(id => id !== productId);
+    } else {
+      newCart = [...cart, productId];
+    }
+    setCart(newCart);
+    localStorage.setItem('vibe_cart', JSON.stringify(newCart));
+  };
+
+  const toggleSaveStore = (storeId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    let newStores;
+    if (savedStores.includes(storeId)) {
+      newStores = savedStores.filter(id => id !== storeId);
+    } else {
+      newStores = [...savedStores, storeId];
+    }
+    setSavedStores(newStores);
+    localStorage.setItem('vibe_saved_stores', JSON.stringify(newStores));
+  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -89,6 +120,22 @@ const Home: React.FC = () => {
         <div className="fixed inset-0 bg-black/10 dark:bg-black/40 backdrop-blur-[3px] z-40 transition-all duration-500" />
       )}
 
+      {/* Floating Comparison Button */}
+      {cart.length > 0 && (
+        <button 
+          onClick={() => navigate('/cart-comparison')}
+          className="fixed bottom-28 right-6 z-[60] bg-primary text-white h-16 px-6 rounded-2xl shadow-primary-glow flex items-center gap-3 animate-in slide-in-from-right-10 duration-500 group active:scale-90"
+        >
+          <div className="relative">
+            <span className="material-symbols-outlined text-2xl fill-icon">shopping_cart</span>
+            <span className="absolute -top-2 -right-2 bg-white text-primary text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md">
+              {cart.length}
+            </span>
+          </div>
+          <span className="text-[11px] font-black uppercase tracking-widest hidden sm:block">Comparar Canasta</span>
+        </button>
+      )}
+
       <header className="px-6 pt-10 pb-4 flex justify-between items-center sticky top-0 bg-vibe-light/80 dark:bg-vibe-dark/80 backdrop-blur-md z-50">
         <div className="flex items-center gap-2.5">
           <div className="bg-primary w-10 h-10 rounded-lg flex items-center justify-center shadow-primary-glow">
@@ -100,7 +147,6 @@ const Home: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-1.5">
-          {/* Ticker BCV Sutil */}
           <div className="bg-white/40 dark:bg-vibe-card/40 h-9 px-3 rounded-xl flex items-center gap-2 border border-black/[0.04] dark:border-white/[0.04] mr-1">
              <p className="text-[6px] font-black uppercase tracking-[0.2em] text-vibe-sub/40 leading-none">BCV</p>
              <p className="text-[10px] font-bold text-primary/80 leading-none tracking-tight">Bs.{BCV_RATE.toFixed(2)}</p>
@@ -177,7 +223,7 @@ const Home: React.FC = () => {
         )}
       </div>
 
-      {/* Banner de Publicidad Restaurado */}
+      {/* Banner de Publicidad */}
       <div className="mt-4 px-6 max-w-5xl mx-auto">
         <div className="relative w-full aspect-[21/9] overflow-hidden rounded-2xl shadow-vibe bg-vibe-card">
           <div className="flex transition-transform duration-700 ease-out h-full" style={{ transform: `translateX(-${activeBanner * 100}%)` }}>
@@ -202,7 +248,47 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Categorías Restauradas */}
+      {/* Comercio Stories */}
+      <div className="mt-10 px-2 max-w-screen-xl mx-auto overflow-hidden">
+        <div className="flex gap-6 overflow-x-auto no-scrollbar px-6 pb-4">
+           {MOCK_STORES.map((store) => {
+             const isSaved = savedStores.includes(store.id);
+             return (
+              <div 
+                key={store.id} 
+                className="flex flex-col items-center gap-3 shrink-0 group relative cursor-pointer"
+                onClick={() => navigate(`/store/${store.id}`)}
+              >
+                  {/* Anillo de Gradiente Naranja-Oro con Sombras Profundas */}
+                  <div className="w-[80px] h-[80px] rounded-full p-[3.5px] bg-gradient-to-b from-[#FB6316] via-[#FF8C00] to-[#FFD700] shadow-lg relative">
+                    <div className="w-full h-full rounded-full border-[2.5px] border-white dark:border-vibe-dark overflow-hidden bg-white shadow-inner">
+                        <img 
+                          src={store.logo} 
+                          alt={store.name} 
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                        />
+                    </div>
+                    {/* Botón + para agregar a favoritos de tiendas */}
+                    <button 
+                      onClick={(e) => toggleSaveStore(store.id, e)}
+                      className={`absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white dark:border-vibe-dark transition-all duration-300 shadow-md ${isSaved ? 'bg-primary text-white' : 'bg-white text-primary hover:scale-110'}`}
+                    >
+                      <span className="material-symbols-outlined text-[16px] font-black">
+                        {isSaved ? 'favorite' : 'add'}
+                      </span>
+                    </button>
+                  </div>
+                  {/* Tipografía Estilo Referencia */}
+                  <span className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#001B44] dark:text-white/90">
+                    {store.name}
+                  </span>
+              </div>
+             );
+           })}
+        </div>
+      </div>
+
+      {/* Categorías */}
       <div className="px-6 mt-12 max-w-screen-xl mx-auto">
         <div className="flex justify-between items-end mb-6">
           <h3 className="text-xl font-black tracking-tight">Categorías</h3>
@@ -222,6 +308,7 @@ const Home: React.FC = () => {
         </div>
       </div>
 
+      {/* Sugerencias */}
       <section className="px-6 mt-16 max-w-screen-xl mx-auto">
         <div className="flex justify-between items-end mb-6">
           <div className="flex flex-col">
@@ -232,6 +319,7 @@ const Home: React.FC = () => {
         <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 -mx-6 px-6">
           {suggestedProducts.map((product) => {
             const isVoted = parseInt(product.id) % 2 === 0;
+            const inCart = cart.includes(product.id);
             return (
               <div 
                 key={product.id} 
@@ -244,6 +332,16 @@ const Home: React.FC = () => {
                       TOP
                     </div>
                   )}
+                  {/* Botón + para Agregar al Carrito (Pixel Perfect) */}
+                  <button 
+                    onClick={(e) => toggleCart(product.id, e)}
+                    className={`absolute bottom-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border transition-all duration-300 shadow-sm ${inCart ? 'bg-primary text-white border-primary' : 'bg-white/40 text-vibe-dark border-white/40 hover:bg-white/60'}`}
+                  >
+                    <span className="material-symbols-outlined text-[18px] font-black">
+                      {inCart ? 'check' : 'add'}
+                    </span>
+                  </button>
+
                   <img src={product.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
                 </div>
                 <p className="text-[9px] font-black uppercase text-primary tracking-widest mb-1 truncate">{product.presentation}</p>
@@ -258,6 +356,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+      {/* Precios más bajos */}
       <section className="px-6 mt-16 max-w-screen-xl mx-auto">
         <div className="flex justify-between items-end mb-6">
           <div className="flex flex-col">
@@ -269,14 +368,25 @@ const Home: React.FC = () => {
         <div className="space-y-4">
           {lowestPrices.map((price) => {
             const product = MOCK_PRODUCTS.find(p => p.id === price.productId);
+            const inCart = product ? cart.includes(product.id) : false;
             return (
               <div 
                 key={price.id}
-                onClick={() => navigate(`/product/${price.id}`)}
+                onClick={() => product && navigate(`/product/${product.id}`)}
                 className="bg-white dark:bg-vibe-card rounded-3xl p-4 border border-black/[0.03] shadow-vibe flex items-center gap-4 group active:scale-[0.98] transition-all cursor-pointer relative"
               >
-                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-vibe-light dark:bg-vibe-dark shrink-0">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-vibe-light dark:bg-vibe-dark shrink-0 relative">
                   <img src={product?.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
+                  
+                  {/* Botón + para Agregar al Carrito (Pixel Perfect) */}
+                  <button 
+                    onClick={(e) => product && toggleCart(product.id, e)}
+                    className={`absolute bottom-1 right-1 z-20 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border transition-all duration-300 shadow-sm ${inCart ? 'bg-primary text-white border-primary' : 'bg-white/40 text-vibe-dark border-white/40'}`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      {inCart ? 'check' : 'add'}
+                    </span>
+                  </button>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -289,7 +399,7 @@ const Home: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-xs font-black text-green-600 dark:text-green-400 uppercase tracking-tighter mb-0.5">Bs.</p>
-                  <p className="text-xl font-black text-green-600 dark:text-green-400 tracking-tighter leading-none">{price.priceBs.toFixed(0)}</p>
+                  <p className="text-2xl font-black text-green-600 dark:text-green-400 tracking-tighter leading-none tabular-nums">{price.priceBs.toLocaleString('es-VE')}</p>
                 </div>
               </div>
             );

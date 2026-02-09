@@ -42,9 +42,6 @@ const Favorites: React.FC = () => {
               {favorites.length} productos monitoreados
             </p>
           </div>
-          <button className="text-primary text-[10px] font-black uppercase tracking-widest bg-primary/10 px-4 py-2 rounded-xl active:scale-95 transition-all">
-            Comparar Todo
-          </button>
         </div>
 
         <div className="space-y-4">
@@ -78,51 +75,16 @@ const Favorites: React.FC = () => {
                   <div className="mt-3 flex items-center justify-between">
                     <div>
                       <span className="text-[8px] font-black uppercase tracking-widest opacity-40">Mejor Precio</span>
-                      <p className="text-primary font-black text-base tracking-tighter leading-none">
-                        {bestPrice ? `Bs. ${bestPrice.priceBs.toFixed(0)}` : 'S/P'}
+                      <p className="text-primary font-black text-lg tracking-tighter leading-none tabular-nums">
+                        {bestPrice ? `Bs. ${bestPrice.priceBs.toLocaleString('es-VE')}` : 'S/P'}
                       </p>
-                    </div>
-                    <div className="flex items-center gap-1.5 opacity-40">
-                       <span className="material-symbols-outlined text-[14px]">storefront</span>
-                       <span className="text-[9px] font-bold truncate max-w-[60px]">{bestPrice?.storeName || 'N/A'}</span>
                     </div>
                   </div>
                 </div>
               </div>
             );
           })}
-
-          {favorites.length === 0 && (
-            <div className="py-24 flex flex-col items-center text-center px-10">
-              <div className="w-20 h-20 bg-primary/5 rounded-[2.5rem] flex items-center justify-center text-primary/30 mb-6">
-                <span className="material-symbols-outlined text-4xl">favorite_border</span>
-              </div>
-              <h4 className="text-xl font-black tracking-tighter mb-2">Tu lista está vacía</h4>
-              <p className="text-sm text-vibe-sub/60 font-medium leading-relaxed">
-                Guarda tus productos más frecuentes para recibir alertas de precio y comparar rápidamente.
-              </p>
-              <button 
-                onClick={() => navigate('/search')}
-                className="mt-8 px-8 h-12 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-primary-glow active:scale-95 transition-all"
-              >
-                Explorar Productos
-              </button>
-            </div>
-          )}
         </div>
-
-        {/* Community Insight */}
-        {favorites.length > 0 && (
-          <div className="mt-12 p-8 bg-primary/[0.03] dark:bg-primary/[0.05] rounded-[2.5rem] border border-primary/10 flex flex-col items-center text-center">
-             <div className="w-12 h-12 rounded-2xl bg-white dark:bg-vibe-card flex items-center justify-center text-primary shadow-sm mb-4">
-                <span className="material-symbols-outlined fill-icon">insights</span>
-             </div>
-             <h5 className="font-black text-sm tracking-tight mb-2">Análisis de Ahorro</h5>
-             <p className="text-[11px] font-medium text-vibe-sub/80 leading-relaxed max-w-[220px]">
-               Mantener estos productos en favoritos te ayuda a ahorrar un estimado de **Bs. 450** al mes.
-             </p>
-          </div>
-        )}
       </main>
 
       <BottomNav />

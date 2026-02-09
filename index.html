@@ -29,7 +29,7 @@
                     boxShadow: {
                         'vibe': '0 10px 30px -10px rgba(0,0,0,0.08)',
                         'vibe-hover': '0 20px 40px -15px rgba(0,0,0,0.12)',
-                        'primary-glow': '0 10px 20px -5px rgba(249, 97, 21, 0.4)',
+                        'primary-glow': '0 20px 40px -10px rgba(249, 97, 21, 0.5)',
                     }
                 }
             }
@@ -53,11 +53,16 @@
             overscroll-behavior-y: contain;
         }
         .mesh-gradient {
-            background-color: #FB6316;
-            background-image: 
-                radial-gradient(at 0% 0%, hsla(28,94%,67%,1) 0, transparent 50%), 
-                radial-gradient(at 50% 0%, hsla(321,81%,68%,1) 0, transparent 50%), 
-                radial-gradient(at 100% 0%, hsla(221,100%,70%,1) 0, transparent 50%);
+            background: linear-gradient(105deg, #FB6316 0%, #FF8038 45%, #9E6EF7 100%);
+            position: relative;
+        }
+        .mesh-gradient::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top right, rgba(255,255,255,0.1) 0%, transparent 60%);
+            pointer-events: none;
+            border-radius: inherit;
         }
     </style>
 <script type="importmap">

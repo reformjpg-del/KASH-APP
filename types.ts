@@ -3,7 +3,7 @@ export interface Product {
   id: string;
   name: string;
   description: string;
-  category: string; // Cambiado a string para mayor flexibilidad con los IDs de categorías
+  category: string;
   presentation: string;
   imageUrl: string;
 }
@@ -19,8 +19,18 @@ export interface StorePrice {
   address: string;
   stockStatus: 'in-stock' | 'low-stock' | 'out-of-stock';
   lastUpdated: string;
-  popularity: number; // 0-100 score
-  createdAt: string; // ISO date for "recents"
+  popularity: number;
+  createdAt: string;
+}
+
+export interface ComparisonResult {
+  comercio_id: string;
+  comercio_nombre: string;
+  comercio_logo: string;
+  total_pagar: number;
+  items_encontrados: number;
+  items_faltantes: number;
+  lista_faltantes: string[];
 }
 
 export interface UserActivity {

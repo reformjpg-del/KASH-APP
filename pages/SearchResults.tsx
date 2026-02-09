@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MOCK_PRICES, MOCK_PRODUCTS, CATEGORIES_CONFIG } from '../constants';
 import { StorePrice, Product } from '../types';
@@ -13,6 +13,24 @@ const SearchResults: React.FC = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('Todo');
   const [sortBy, setSortBy] = useState('price_asc');
+  const [cart, setCart] = useState<string[]>([]);
+
+  useEffect(() => {
+    const savedCart = JSON.parse(localStorage.getItem('vibe_cart') || '[]');
+    setCart(savedCart);
+  }, []);
+
+  const toggleCart = (productId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    let newCart;
+    if (cart.includes(productId)) {
+      newCart = cart.filter(id => id !== productId);
+    } else {
+      newCart = [...cart, productId];
+    }
+    setCart(newCart);
+    localStorage.setItem('vibe_cart', JSON.stringify(newCart));
+  };
 
   const allCategoryFilters = useMemo(() => {
     const base = [{ id: 'Todo', name: 'Todo', icon: 'notes' }];
@@ -86,6 +104,23 @@ const SearchResults: React.FC = () => {
 
   return (
     <div className="pb-44 min-h-screen bg-white dark:bg-vibe-dark transition-all duration-500">
+      
+      {/* Floating Comparison Button */}
+      {cart.length > 0 && (
+        <button 
+          onClick={() => navigate('/cart-comparison')}
+          className="fixed bottom-28 right-6 z-[60] bg-primary text-white h-16 px-6 rounded-2xl shadow-primary-glow flex items-center gap-3 animate-in slide-in-from-right-10 group active:scale-90"
+        >
+          <div className="relative">
+            <span className="material-symbols-outlined text-2xl fill-icon">shopping_cart</span>
+            <span className="absolute -top-2 -right-2 bg-white text-primary text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md">
+              {cart.length}
+            </span>
+          </div>
+          <span className="text-[11px] font-black uppercase tracking-widest">Comparar Canasta</span>
+        </button>
+      )}
+
       <header className="sticky top-0 bg-white/95 dark:bg-vibe-dark/95 backdrop-blur-xl z-50 px-6 pt-8 pb-4 flex flex-col gap-5 border-b border-black/[0.01]">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/')} className="text-vibe-sub/60 hover:text-vibe-text">
@@ -147,6 +182,7 @@ const SearchResults: React.FC = () => {
       <main className="px-6 pt-4 space-y-4">
         {groupedResults.map((product, idx) => {
           const isExpanded = expandedId === product.id;
+          const inCart = cart.includes(product.id);
           
           return (
             <div 
@@ -159,11 +195,19 @@ const SearchResults: React.FC = () => {
                 onClick={() => toggleExpand(product.id)}
                 className="p-5 flex items-center gap-4 cursor-pointer relative"
               >
-                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-vibe-light dark:bg-vibe-dark shrink-0">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-vibe-light dark:bg-vibe-dark shrink-0 relative">
                   <img src={product.imageUrl} className="w-full h-full object-cover" alt={product.name} />
+                  {/* Cart Action Button */}
+                  <button 
+                    onClick={(e) => toggleCart(product.id, e)}
+                    className={`absolute bottom-1 right-1 z-20 w-7 h-7 rounded-full flex items-center justify-center backdrop-blur-md border transition-all duration-300 ${inCart ? 'bg-primary text-white border-primary' : 'bg-white/40 text-vibe-dark border-white/40'}`}
+                  >
+                    <span className="material-symbols-outlined text-[14px]">
+                      {inCart ? 'check' : 'add'}
+                    </span>
+                  </button>
                 </div>
                 <div className="flex-1 min-w-0">
-                  {/* Contenedor de etiquetas limpio */}
                   <div className="flex gap-1.5 mb-1.5 flex-wrap">
                     {product.isRealOffer && (
                       <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider flex items-center gap-1 border border-emerald-500/20">
@@ -183,8 +227,8 @@ const SearchResults: React.FC = () => {
                   <p className="text-[10px] font-bold text-vibe-sub/50 uppercase tracking-widest mt-0.5">{product.presentation}</p>
                   
                   <div className="mt-2 flex items-baseline gap-1.5">
-                     <span className="text-[10px] font-black text-primary uppercase opacity-60">Desde Bs.</span>
-                     <span className="text-xl font-black tracking-tighter text-primary">{product.bestPrice.toLocaleString('es-VE')}</span>
+                     <span className="text-[9px] font-black text-primary uppercase opacity-60">Desde Bs.</span>
+                     <span className="text-2xl font-black tracking-tighter text-primary tabular-nums">{product.bestPrice.toLocaleString('es-VE')}</span>
                   </div>
                 </div>
                 <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-primary' : 'text-vibe-sub/20'}`}>
@@ -202,7 +246,7 @@ const SearchResults: React.FC = () => {
                             <p className="text-[9px] font-bold text-vibe-sub/60 uppercase">{offer.location} • {offer.distanceKm} km</p>
                          </div>
                          <div className="text-right">
-                            <p className="text-sm font-black text-primary">Bs. {offer.priceBs.toLocaleString('es-VE')}</p>
+                            <p className="text-lg font-black text-primary tabular-nums">Bs. {offer.priceBs.toLocaleString('es-VE')}</p>
                             <button className="text-[8px] font-black uppercase text-blue-500 mt-1 block hover:underline">Ver mapa</button>
                          </div>
                       </div>

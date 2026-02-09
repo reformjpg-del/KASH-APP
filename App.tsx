@@ -25,6 +25,8 @@ import InviteFriends from './pages/InviteFriends';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import SupportChat from './pages/SupportChat';
+import CartComparison from './pages/CartComparison';
+import StoreCatalog from './pages/StoreCatalog';
 import BottomNav from './components/BottomNav';
 
 const App: React.FC = () => {
@@ -90,6 +92,8 @@ const App: React.FC = () => {
                       <Route path="/category/:id" element={<CategoryDetail />} />
                       <Route path="/daily-offers" element={<DailyOffers />} />
                       <Route path="/support" element={<SupportChat />} />
+                      <Route path="/cart-comparison" element={<CartComparison />} />
+                      <Route path="/store/:id" element={<StoreCatalog />} />
                       <Route path="*" element={<Navigate to="/" />} />
                     </>
                   )}

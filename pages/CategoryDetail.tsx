@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CATEGORIES_CONFIG, MOCK_PRODUCTS, MOCK_PRICES } from '../constants';
 import BottomNav from '../components/BottomNav';
@@ -9,6 +9,12 @@ const CategoryDetail: React.FC = () => {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [localSearch, setLocalSearch] = useState('');
+  const [cart, setCart] = useState<string[]>([]);
+
+  useEffect(() => {
+    const savedCart = JSON.parse(localStorage.getItem('vibe_cart') || '[]');
+    setCart(savedCart);
+  }, []);
 
   const category = useMemo(() => 
     CATEGORIES_CONFIG.find(c => c.id === id) || CATEGORIES_CONFIG[0]
@@ -34,8 +40,37 @@ const CategoryDetail: React.FC = () => {
     });
   }, [categoryProducts, localSearch]);
 
+  const toggleCart = (productId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    let newCart;
+    if (cart.includes(productId)) {
+      newCart = cart.filter(id => id !== productId);
+    } else {
+      newCart = [...cart, productId];
+    }
+    setCart(newCart);
+    localStorage.setItem('vibe_cart', JSON.stringify(newCart));
+  };
+
   return (
     <div className="pb-40 min-h-screen bg-vibe-light dark:bg-vibe-dark transition-colors duration-500">
+      
+      {/* Floating Comparison Button */}
+      {cart.length > 0 && (
+        <button 
+          onClick={() => navigate('/cart-comparison')}
+          className="fixed bottom-28 right-6 z-[60] bg-primary text-white h-16 px-6 rounded-2xl shadow-primary-glow flex items-center gap-3 animate-in slide-in-from-right-10 group active:scale-90"
+        >
+          <div className="relative">
+            <span className="material-symbols-outlined text-2xl fill-icon">shopping_cart</span>
+            <span className="absolute -top-2 -right-2 bg-white text-primary text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md">
+              {cart.length}
+            </span>
+          </div>
+          <span className="text-[11px] font-black uppercase tracking-widest hidden sm:block">Comparar</span>
+        </button>
+      )}
+
       {/* Background Accent Gradient */}
       <div 
         className="fixed top-0 left-0 w-full h-64 opacity-10 pointer-events-none" 
@@ -71,11 +106,6 @@ const CategoryDetail: React.FC = () => {
             className="w-full h-12 bg-black/[0.03] dark:bg-white/[0.04] rounded-xl border-none px-11 font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-vibe-sub/40"
           />
           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-vibe-sub/40 group-focus-within:text-primary transition-colors">search</span>
-          {localSearch && (
-            <button onClick={() => setLocalSearch('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-vibe-sub/40">
-               <span className="material-symbols-outlined text-sm">close</span>
-            </button>
-          )}
         </div>
 
         <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
@@ -98,10 +128,12 @@ const CategoryDetail: React.FC = () => {
       <main className="px-6 py-6 relative z-10">
         {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 gap-4">
-            {filteredProducts.map((item, i) => (
+            {filteredProducts.map((item, i) => {
+              const inCart = cart.includes(item.id);
+              return (
               <div 
                 key={item.id}
-                onClick={() => navigate(item.bestPrice ? `/product/${item.bestPrice.id}` : '#')}
+                onClick={() => item.bestPrice ? navigate(`/product/${item.bestPrice.id}`) : '#'}
                 className="bg-white dark:bg-vibe-card rounded-3xl p-4 border border-black/[0.03] dark:border-white/[0.03] shadow-vibe group active:scale-[0.97] transition-all cursor-pointer animate-in fade-in slide-in-from-bottom-4"
                 style={{ animationDelay: `${i * 50}ms`, animationFillMode: 'both' }}
               >
@@ -111,14 +143,19 @@ const CategoryDetail: React.FC = () => {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                     alt={item.name} 
                   />
+                  {/* Cart Plus Button */}
+                  <button 
+                    onClick={(e) => toggleCart(item.id, e)}
+                    className={`absolute bottom-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border transition-all duration-300 ${inCart ? 'bg-primary text-white border-primary shadow-lg' : 'bg-white/50 text-vibe-dark border-white/50'}`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      {inCart ? 'check' : 'add'}
+                    </span>
+                  </button>
+
                   {item.bestPrice && (
-                    <div className="absolute top-2 right-2 bg-primary text-white text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-tighter shadow-lg z-10">
-                      Best Price
-                    </div>
-                  )}
-                  {isMedicamentos && item.description.includes('Requiere récipe') && (
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                       <span className="text-[10px] font-black text-white uppercase tracking-widest text-center px-4">Requiere Récipe Médico</span>
+                    <div className="absolute top-2 left-2 bg-emerald-500 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg z-10">
+                      Top Price
                     </div>
                   )}
                 </div>
@@ -133,52 +170,21 @@ const CategoryDetail: React.FC = () => {
                   <div className="flex items-center justify-between mt-3">
                      <div className="flex flex-col">
                         <span className="text-[8px] font-black uppercase tracking-wider opacity-40">Mejor Opción</span>
-                        <p className="text-primary font-black text-lg tracking-tighter leading-none">
-                          {item.bestPrice ? `Bs. ${item.bestPrice.priceBs.toFixed(0)}` : 'S/P'}
+                        <p className="text-primary font-black text-xl tracking-tighter leading-none tabular-nums">
+                          {item.bestPrice ? `Bs. ${item.bestPrice.priceBs.toLocaleString('es-VE')}` : 'S/P'}
                         </p>
-                     </div>
-                     <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
-                        <span className="material-symbols-outlined text-[18px]">add</span>
                      </div>
                   </div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         ) : (
-          <div className="py-24 flex flex-col items-center text-center">
-            <div className="w-24 h-24 rounded-[2rem] bg-black/5 dark:bg-white/5 flex items-center justify-center mb-6 border border-black/[0.03] dark:border-white/[0.03]">
-              <span className="material-symbols-outlined text-4xl opacity-20">search_off</span>
-            </div>
-            <h4 className="font-black text-lg tracking-tight">No hay coincidencias</h4>
-            <p className="text-xs font-medium text-vibe-sub px-10 mt-2 leading-relaxed">
-              No encontramos productos que coincidan con tu búsqueda en esta categoría.
-            </p>
-            <button 
-              onClick={() => setLocalSearch('')}
-              className="mt-8 h-12 px-6 bg-vibe-dark dark:bg-white text-white dark:text-vibe-dark rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all"
-            >
-              Limpiar búsqueda
-            </button>
+          <div className="py-20 flex flex-col items-center text-center px-10">
+             <span className="material-symbols-outlined text-4xl opacity-20 mb-4">search_off</span>
+             <p className="font-bold text-vibe-sub">No se encontraron productos</p>
           </div>
         )}
-
-        {/* Community Info Box */}
-        <div className="mt-12 p-8 bg-white dark:bg-vibe-card rounded-[3rem] border border-black/[0.03] dark:border-white/[0.03] shadow-vibe relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
-          <div className="relative z-10 flex flex-col items-center text-center">
-             <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-4">
-                <span className="material-symbols-outlined fill-icon">volunteer_activism</span>
-             </div>
-             <h3 className="text-lg font-black tracking-tight mb-2">Precios validados</h3>
-             <p className="text-xs text-vibe-sub/80 font-medium leading-relaxed mb-6 px-4">
-               Los precios en esta categoría son verificados diariamente por farmacéuticos y vecinos de la comunidad.
-             </p>
-             <button onClick={() => navigate('/report')} className="h-12 w-full bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-primary-glow active:scale-[0.98] transition-all">
-               Reportar Precio Ahora
-             </button>
-          </div>
-        </div>
       </main>
 
       <BottomNav />
