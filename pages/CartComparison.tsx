@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MOCK_PRODUCTS, BCV_RATE, MOCK_PRICES } from '../constants';
+import { MOCK_PRODUCTS, MOCK_PRICES, MOCK_STORES } from '../constants';
 import { ComparisonResult } from '../types';
 
 const CartComparison: React.FC = () => {
@@ -23,163 +23,209 @@ const CartComparison: React.FC = () => {
   const performComparison = async () => {
     setLoading(true);
     setTimeout(() => {
-      const stores = ['Farmatodo', 'Luxor', 'Forum', 'Locatel', 'Bio', 'Traki'];
-      const comparisonResults: ComparisonResult[] = stores.map(storeName => {
+      const comparisonResults: ComparisonResult[] = MOCK_STORES.map(store => {
         let total = 0;
-        let found = 0;
+        let foundCount = 0;
         let missingNames: string[] = [];
+        
         cartItems.forEach(item => {
-          const price = MOCK_PRICES.find(p => p.productId === item.id && p.storeName === storeName);
-          if (price) {
-            total += price.priceBs;
-            found++;
+          const priceEntry = MOCK_PRICES.find(p => p.productId === item.id && p.storeName === store.name);
+          if (priceEntry) {
+            total += priceEntry.priceBs;
+            foundCount++;
           } else {
             missingNames.push(item.name);
           }
         });
+
         return {
-          comercio_id: storeName.toLowerCase(),
-          comercio_nombre: storeName,
-          comercio_logo: storeName === 'Farmatodo' ? 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=200&h=200&auto=format&fit=crop' : `https://picsum.photos/seed/${storeName.toLowerCase()}/200/200`,
+          comercio_id: store.id,
+          comercio_nombre: store.name,
+          comercio_logo: store.logo,
           total_pagar: total,
-          items_encontrados: found,
-          items_faltantes: cartItems.length - found,
+          items_encontrados: foundCount,
+          items_faltantes: cartItems.length - foundCount,
           lista_faltantes: missingNames
         };
-      }).filter(res => res.items_encontrados > 0)
-        .sort((a, b) => {
-          if (a.items_faltantes !== b.items_faltantes) return a.items_faltantes - b.items_faltantes;
-          return a.total_pagar - b.total_pagar;
-        });
+      })
+      .filter(res => res.items_encontrados > 0)
+      .sort((a, b) => {
+        if (a.items_faltantes !== b.items_faltantes) return a.items_faltantes - b.items_faltantes;
+        return a.total_pagar - b.total_pagar;
+      });
+
       setResults(comparisonResults);
       setLoading(false);
-    }, 1500);
+    }, 600);
   };
 
-  const clearCart = () => {
-    localStorage.setItem('vibe_cart', '[]');
-    navigate('/');
+  const handleClearCart = () => {
+    if (window.confirm('¿Estás seguro de que deseas vaciar tu canasta de comparación?')) {
+      localStorage.setItem('vibe_cart', '[]');
+      navigate('/');
+    }
   };
+
+  const handleFinishComparison = () => {
+    // Registrar el uso en localStorage (simulación de contador global)
+    const currentUsage = parseInt(localStorage.getItem('kash_total_comparisons') || '0');
+    localStorage.setItem('kash_total_comparisons', (currentUsage + 1).toString());
+    
+    // Premiar al usuario con puntos por completar una comparativa
+    const userPoints = parseInt(localStorage.getItem('vibe_points') || '0');
+    localStorage.setItem('vibe_points', (userPoints + 25).toString());
+
+    navigate('/success');
+  };
+
+  // Cálculo de ahorro estimado (Comparando el mejor vs el promedio)
+  const estimatedSavings = useMemo(() => {
+    if (results.length < 2) return 0;
+    const avg = results.reduce((acc, curr) => acc + curr.total_pagar, 0) / results.length;
+    return avg - results[0].total_pagar;
+  }, [results]);
 
   return (
-    <div className="pb-44 min-h-screen bg-vibe-light dark:bg-vibe-dark transition-all duration-500">
-      <header className="px-6 pt-10 pb-6 sticky top-0 bg-vibe-light/90 dark:bg-vibe-dark/90 backdrop-blur-xl z-50 border-b border-black/[0.03] flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="w-11 h-11 flex items-center justify-center rounded-2xl bg-white dark:bg-vibe-card border border-black/[0.04] shadow-sm">
-          <span className="material-symbols-outlined text-[20px]">arrow_back_ios_new</span>
-        </button>
-        <div className="text-center">
-           <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary leading-none mb-1">Optimizador</h2>
-           <p className="text-sm font-black tracking-tight">Comparar Canasta</p>
+    <div className="pb-52 min-h-screen bg-[#F4F7F9] dark:bg-vibe-dark transition-all duration-500">
+      {/* Header Estilo Referencia */}
+      <header className="px-6 pt-10 pb-4 sticky top-0 bg-[#F4F7F9]/90 dark:bg-vibe-dark/90 backdrop-blur-xl z-50">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col">
+             <h1 className="text-[22px] font-[900] tracking-tight text-[#1A1C1E] dark:text-white leading-tight">Comparativa Local</h1>
+             <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#9EA7AF] dark:text-vibe-sub/60">TIENDAS VERIFICADAS</p>
+          </div>
+          <button 
+            onClick={handleClearCart}
+            className="bg-red-50 dark:bg-red-500/10 text-red-500 px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all flex items-center gap-2 border border-red-100 dark:border-red-500/20 shadow-sm"
+          >
+            <span className="material-symbols-outlined text-[16px]">delete_sweep</span>
+            VACIAR
+          </button>
         </div>
-        <button onClick={clearCart} className="text-red-500 material-symbols-outlined">delete_sweep</button>
       </header>
 
-      <main className="p-6">
-        {/* Cart Review Card */}
-        <section className="bg-white dark:bg-vibe-card rounded-[2.5rem] p-6 border border-black/[0.03] shadow-vibe mb-12">
-          <div className="flex justify-between items-center mb-5">
-             <h3 className="font-black text-lg tracking-tight">Mi Carrito Virtual</h3>
-             <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{cartItems.length} Items</span>
+      <main className="px-5 pt-4 space-y-4">
+        {loading ? (
+          <div className="py-20 flex flex-col items-center gap-4">
+             <div className="w-10 h-10 border-4 border-primary/10 border-t-primary rounded-full animate-spin" />
+             <p className="text-[10px] font-black uppercase tracking-widest text-vibe-sub/40">Analizando precios...</p>
           </div>
-          <div className="flex -space-x-3 mb-6 overflow-x-auto no-scrollbar pb-2">
-            {cartItems.map((item, i) => (
-              <div key={item.id} className="w-12 h-12 rounded-xl border-2 border-white dark:border-vibe-card overflow-hidden bg-vibe-light shrink-0 shadow-sm" style={{ zIndex: 10 - i }}>
-                <img src={item.imageUrl} className="w-full h-full object-cover" alt="" />
-              </div>
-            ))}
-          </div>
-          {cartItems.length > 0 && (
-            <button onClick={performComparison} disabled={loading} className="w-full h-16 bg-vibe-dark dark:bg-white text-white dark:text-vibe-dark rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl">
-              {loading ? <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /> : "Recalcular Ahorro Real"}
-            </button>
-          )}
-        </section>
-
-        {/* Results List - Pixel Perfect Winner Card */}
-        <div className="space-y-12">
-          {results.map((res, i) => {
-            const isWinner = i === 0 && res.items_faltantes === 0;
-            return (
-              <div 
-                key={res.comercio_id}
-                className={`
-                  relative rounded-[2.8rem] p-8 transition-all duration-500 animate-in fade-in slide-in-from-bottom-6
-                  ${isWinner 
-                    ? 'mesh-gradient shadow-primary-glow' 
-                    : 'bg-white dark:bg-vibe-card border border-black/[0.04] shadow-vibe'
-                  }
-                `}
-                style={{ animationDelay: `${i * 150}ms`, animationFillMode: 'both' }}
-              >
-                {/* Floating Capsule Badge - Pixel Perfect Reference */}
-                {isWinner && (
-                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-white text-primary px-7 py-3 rounded-full shadow-2xl border border-primary/5 z-20 flex flex-col items-center min-w-[180px]">
-                     <span className="text-[10px] font-black uppercase tracking-[0.18em] leading-tight text-primary">TIENDA MÁS</span>
-                     <span className="text-[10px] font-black uppercase tracking-[0.18em] leading-tight text-primary">ECONÓMICA</span>
+        ) : (
+          <>
+            {results.map((res, i) => {
+              const isBest = i === 0;
+              return (
+                <div 
+                  key={res.comercio_id}
+                  className={`
+                    bg-white dark:bg-vibe-card rounded-[2.2rem] p-5 shadow-sm border transition-all duration-300 animate-in fade-in slide-in-from-bottom-2
+                    ${isBest ? 'border-primary ring-2 ring-primary/10 shadow-primary-glow/15 scale-[1.02]' : 'border-black/[0.04] dark:border-white/[0.04]'}
+                  `}
+                  style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'both' }}
+                >
+                  {/* Top Row: Logo | Info | Price */}
+                  <div className="flex items-start justify-between mb-5">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="w-16 h-16 rounded-2xl bg-[#F8FAFB] dark:bg-vibe-dark flex items-center justify-center p-1.5 border border-black/[0.03] shrink-0">
+                        <img src={res.comercio_logo} className="w-full h-full object-cover rounded-xl" alt="" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                          <h4 className="text-[18px] font-[900] tracking-tight text-[#1A1C1E] dark:text-white truncate">
+                            {res.comercio_nombre}
+                          </h4>
+                          {isBest && (
+                            <span className="material-symbols-outlined text-primary fill-icon text-[18px] drop-shadow-sm">grade</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                           {isBest && (
+                             <div className="bg-[#00A86B] text-white px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest leading-none">
+                               MEJOR PRECIO
+                             </div>
+                           )}
+                           <p className="text-[10px] font-black text-[#9EA7AF] dark:text-vibe-sub/50 uppercase tracking-[0.1em]">
+                             MARACAY • {MOCK_STORES.find(s => s.id === res.comercio_id)?.distance || '0.5 KM'}
+                           </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0 ml-2">
+                      <p className={`text-[19px] font-[900] tabular-nums tracking-tighter ${isBest ? 'text-primary' : 'text-[#1A1C1E] dark:text-white'}`}>
+                        Bs. {res.total_pagar.toLocaleString('es-VE')}
+                      </p>
+                      <p className="text-[8px] font-black text-[#9EA7AF] dark:text-vibe-sub/40 uppercase tracking-widest mt-1">
+                        HACE POCOS MINUTOS
+                      </p>
+                    </div>
                   </div>
-                )}
 
-                <div className="flex justify-between items-center mb-8 pt-2">
-                   <div className="flex items-center gap-4">
-                      {/* Store Logo with Glass Effect Border */}
-                      <div className={`w-24 h-24 rounded-[1.8rem] overflow-hidden p-1.5 shrink-0 ${isWinner ? 'bg-white/20 border border-white/40' : 'bg-vibe-light dark:bg-vibe-dark border border-black/5'}`}>
-                         <img src={res.comercio_logo} className="w-full h-full object-cover rounded-[1.4rem]" alt="" />
-                      </div>
-                      <div className="flex flex-col">
-                         <h4 className={`font-black text-[28px] tracking-tighter leading-none ${isWinner ? 'text-white' : 'text-vibe-dark dark:text-white'}`}>
-                           {res.comercio_nombre}
-                         </h4>
-                         <p className={`text-[11px] font-black uppercase tracking-[0.12em] mt-3 ${isWinner ? 'text-white/80' : 'text-vibe-sub/50'}`}>
-                           {res.items_encontrados}/{cartItems.length} EN STOCK
-                         </p>
-                      </div>
-                   </div>
-                   <div className="text-right">
-                      <p className={`text-[9px] font-black uppercase tracking-[0.2em] mb-1.5 opacity-40 ${isWinner ? 'text-white' : 'text-vibe-sub'}`}>TOTAL CANASTA</p>
-                      <div className="flex items-baseline justify-end gap-1">
-                        <span className={`text-[15px] font-black uppercase ${isWinner ? 'text-white/70' : 'text-primary'}`}>Bs.</span>
-                        <p className={`text-4xl font-black tracking-tighter leading-none tabular-nums ${isWinner ? 'text-white' : 'text-primary'}`}>
-                          {res.total_pagar.toLocaleString('es-VE')}
-                        </p>
-                      </div>
-                   </div>
+                  {/* Action Buttons Row */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      className="h-11 bg-[#F0F4FF] dark:bg-blue-500/10 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all group border border-blue-500/5"
+                    >
+                       <span className="material-symbols-outlined text-[18px] text-[#4C6FFF] fill-icon">near_me</span>
+                       <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#4C6FFF]">MAPA</span>
+                    </button>
+                    <button 
+                      className="h-11 bg-[#E7F8F1] dark:bg-green-500/10 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all group border border-green-500/5"
+                    >
+                       <span className="material-symbols-outlined text-[18px] text-[#00A86B] fill-icon">chat</span>
+                       <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#00A86B]">CHAT</span>
+                    </button>
+                  </div>
                 </div>
+              );
+            })}
 
-                {/* Main Divider Style Reference */}
-                <div className={`h-[2px] w-full rounded-full mb-10 ${isWinner ? 'bg-white' : 'bg-black/10 dark:bg-white/10'}`} />
-
-                {/* Bottom Action Bar */}
-                <div className="flex gap-4">
-                   <button className={`flex-1 h-16 rounded-[1.6rem] text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all ${isWinner ? 'bg-white/20 backdrop-blur-md text-white border border-white/20 hover:bg-white/30' : 'bg-vibe-light dark:bg-white/5 text-vibe-sub'}`}>
-                      <span className="material-symbols-outlined text-[22px] fill-icon">map</span>
-                      VER MAPA
-                   </button>
-                   <button 
-                    onClick={() => navigate(`/store/${res.comercio_id}`)}
-                    className={`flex-1 h-16 rounded-[1.6rem] text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all shadow-lg ${isWinner ? 'bg-white text-primary' : 'bg-primary text-white'}`}>
-                      VER TIENDA
-                   </button>
+            {results.length > 0 && (
+              <div className="pt-8 pb-12">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="px-6 py-2 bg-emerald-500/10 rounded-full border border-emerald-500/20 animate-bounce">
+                    <p className="text-[10px] font-[900] text-[#00A86B] uppercase tracking-[0.2em]">
+                      Ahorras aprox. Bs. {estimatedSavings.toFixed(0)} hoy
+                    </p>
+                  </div>
+                  
+                  <button 
+                    onClick={handleFinishComparison}
+                    className="w-full h-18 bg-[#001B44] dark:bg-white text-white dark:text-[#001B44] rounded-[2.2rem] font-black uppercase tracking-[0.4em] text-[12px] flex items-center justify-center gap-4 shadow-2xl active:scale-[0.98] transition-all relative overflow-hidden group"
+                  >
+                    <div className="absolute inset-0 bg-primary/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                    <span className="relative z-10">TERMINAR COMPARATIVA</span>
+                    <span className="material-symbols-outlined fill-icon text-xl text-primary relative z-10 animate-pulse">verified</span>
+                  </button>
+                  
+                  <p className="text-center text-[9px] font-[800] text-vibe-sub/40 uppercase tracking-[0.25em] max-w-[200px] leading-relaxed">
+                    Al terminar, tu ahorro será registrado en el Ranking KASH
+                  </p>
                 </div>
-
-                {/* Items Faltantes Info (If any) */}
-                {res.items_faltantes > 0 && (
-                   <div className={`mt-6 flex items-center gap-2 px-4 py-3 rounded-2xl ${isWinner ? 'bg-white/10 text-white/80' : 'bg-orange-500/10 text-orange-600'}`}>
-                      <span className="material-symbols-outlined text-sm">warning</span>
-                      <p className="text-[10px] font-bold uppercase tracking-tight">No tiene: {res.lista_faltantes.slice(0, 2).join(', ')}...</p>
-                   </div>
-                )}
               </div>
-            );
-          })}
+            )}
+          </>
+        )}
 
-          {!loading && results.length === 0 && cartItems.length > 0 && (
-            <div className="py-24 flex flex-col items-center text-center opacity-30">
-               <span className="material-symbols-outlined text-7xl mb-6">explore_off</span>
-               <p className="font-black text-xs uppercase tracking-[0.25em] px-12 leading-relaxed">No hay tiendas cercanas registradas con estos productos actualmente.</p>
-            </div>
-          )}
-        </div>
+        {cartItems.length === 0 && (
+          <div className="py-24 flex flex-col items-center text-center">
+             <div className="w-20 h-20 bg-primary/10 rounded-[2.5rem] flex items-center justify-center text-primary/40 mb-6">
+                <span className="material-symbols-outlined text-4xl">shopping_cart</span>
+             </div>
+             <p className="text-sm font-[800] text-vibe-sub/60">Agrega productos para comparar</p>
+             <button onClick={() => navigate('/')} className="mt-6 text-primary text-[10px] font-black uppercase tracking-widest underline decoration-2 underline-offset-4">Ir a comprar</button>
+          </div>
+        )}
       </main>
+
+      {/* Floating Back Button */}
+      <div className="fixed bottom-28 left-6 z-50">
+        <button 
+          onClick={() => navigate(-1)}
+          className="w-14 h-14 rounded-full bg-white dark:bg-vibe-card shadow-2xl border border-black/[0.05] dark:border-white/[0.1] flex items-center justify-center active:scale-90 transition-transform"
+        >
+          <span className="material-symbols-outlined text-[#9EA7AF] text-3xl">arrow_back</span>
+        </button>
+      </div>
     </div>
   );
 };

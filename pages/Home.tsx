@@ -169,6 +169,7 @@ const Home: React.FC = () => {
         </div>
       </header>
 
+      {/* Buscador Principal */}
       <div className="px-6 py-4 relative z-50 max-w-3xl mx-auto" ref={searchRef}>
         <div className={`
           flex items-center bg-white dark:bg-vibe-card rounded-2xl transition-all duration-300 px-4 gap-3 h-16
@@ -199,10 +200,6 @@ const Home: React.FC = () => {
 
         {isSearching && suggestions.length > 0 && (
           <div className="absolute top-[5.5rem] left-6 right-6 bg-white dark:bg-vibe-card rounded-2xl shadow-2xl border border-black/[0.03] overflow-hidden z-[60] animate-in fade-in zoom-in-95 duration-200 origin-top">
-            <div className="p-3 bg-vibe-light/50 dark:bg-white/5 border-b border-black/[0.02] flex justify-between items-center">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-vibe-sub/60 ml-2">Sugerencias inteligentes KASH</span>
-              <span className="material-symbols-outlined text-primary text-sm fill-icon animate-pulse">bolt</span>
-            </div>
             {suggestions.map((product) => (
               <button
                 key={product.id}
@@ -248,7 +245,7 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Comercio Stories */}
+      {/* STORIES CAROUSEL (Instagram Style) */}
       <div className="mt-10 px-2 max-w-screen-xl mx-auto overflow-hidden">
         <div className="flex gap-6 overflow-x-auto no-scrollbar px-6 pb-4">
            {MOCK_STORES.map((store) => {
@@ -260,17 +257,17 @@ const Home: React.FC = () => {
                 onClick={() => navigate(`/store/${store.id}`)}
               >
                   {/* Anillo de Gradiente Naranja-Oro con Sombras Profundas */}
-                  <div className="w-[80px] h-[80px] rounded-full p-[3.5px] bg-gradient-to-b from-[#FB6316] via-[#FF8C00] to-[#FFD700] shadow-lg relative">
-                    <div className="w-full h-full rounded-full border-[2.5px] border-white dark:border-vibe-dark overflow-hidden bg-white shadow-inner">
+                  <div className="w-[82px] h-[82px] rounded-full p-[3px] bg-gradient-to-tr from-primary via-[#FF8C00] to-[#FFD700] shadow-md relative group-hover:scale-105 transition-transform">
+                    <div className="w-full h-full rounded-full border-[3px] border-white dark:border-vibe-dark overflow-hidden bg-white shadow-inner">
                         <img 
                           src={store.logo} 
                           alt={store.name} 
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                          className="w-full h-full object-cover group-hover:rotate-6 transition-transform duration-700" 
                         />
                     </div>
-                    {/* Botón + para agregar a favoritos de tiendas */}
+                    {/* Badge de Estatus / Favorito */}
                     <button 
-                      onClick={(e) => toggleSaveStore(store.id, e)}
+                      onClick={(e) => { e.stopPropagation(); toggleSaveStore(store.id, e); }}
                       className={`absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white dark:border-vibe-dark transition-all duration-300 shadow-md ${isSaved ? 'bg-primary text-white' : 'bg-white text-primary hover:scale-110'}`}
                     >
                       <span className="material-symbols-outlined text-[16px] font-black">
@@ -278,8 +275,7 @@ const Home: React.FC = () => {
                       </span>
                     </button>
                   </div>
-                  {/* Tipografía Estilo Referencia */}
-                  <span className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#001B44] dark:text-white/90">
+                  <span className="text-[10px] font-[900] uppercase tracking-[0.1em] text-[#001B44] dark:text-white/80">
                     {store.name}
                   </span>
               </div>
@@ -300,9 +296,7 @@ const Home: React.FC = () => {
               <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${cat.color} group-hover:scale-110 transition-transform`}>
                 <span className="material-symbols-outlined fill-icon text-2xl">{cat.icon}</span>
               </div>
-              <div>
-                <p className="font-extrabold tracking-tight text-sm">{cat.name}</p>
-              </div>
+              <p className="font-extrabold tracking-tight text-sm">{cat.name}</p>
             </div>
           ))}
         </div>
@@ -318,7 +312,6 @@ const Home: React.FC = () => {
         </div>
         <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 -mx-6 px-6">
           {suggestedProducts.map((product) => {
-            const isVoted = parseInt(product.id) % 2 === 0;
             const inCart = cart.includes(product.id);
             return (
               <div 
@@ -327,12 +320,6 @@ const Home: React.FC = () => {
                 className="min-w-[160px] bg-white dark:bg-vibe-card rounded-3xl p-3 border border-black/[0.03] shadow-vibe flex flex-col group cursor-pointer active:scale-[0.97] transition-all relative"
               >
                 <div className="w-full aspect-square rounded-2xl overflow-hidden bg-vibe-light dark:bg-vibe-dark mb-3 relative">
-                  {isVoted && (
-                    <div className="absolute top-2 right-2 z-10 bg-primary/20 backdrop-blur-md text-primary px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-wider border border-primary/20">
-                      TOP
-                    </div>
-                  )}
-                  {/* Botón + para Agregar al Carrito (Pixel Perfect) */}
                   <button 
                     onClick={(e) => toggleCart(product.id, e)}
                     className={`absolute bottom-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border transition-all duration-300 shadow-sm ${inCart ? 'bg-primary text-white border-primary' : 'bg-white/40 text-vibe-dark border-white/40 hover:bg-white/60'}`}
@@ -341,85 +328,7 @@ const Home: React.FC = () => {
                       {inCart ? 'check' : 'add'}
                     </span>
                   </button>
-
                   <img src={product.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
                 </div>
                 <p className="text-[9px] font-black uppercase text-primary tracking-widest mb-1 truncate">{product.presentation}</p>
-                <h4 className="text-xs font-extrabold tracking-tight line-clamp-2 leading-tight h-8 mb-2">{product.name}</h4>
-                <div className="flex items-center gap-1 text-[10px] font-bold text-vibe-sub/60">
-                  <span className="material-symbols-outlined text-[12px] text-green-500 fill-icon">verified</span>
-                  KASH Safe
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Precios más bajos */}
-      <section className="px-6 mt-16 max-w-screen-xl mx-auto">
-        <div className="flex justify-between items-end mb-6">
-          <div className="flex flex-col">
-            <h3 className="text-xl font-black tracking-tight text-green-600 dark:text-green-400">Precios más bajos</h3>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-vibe-sub/60">Oportunidades hoy</p>
-          </div>
-          <span className="material-symbols-outlined text-green-500 fill-icon animate-pulse">trending_down</span>
-        </div>
-        <div className="space-y-4">
-          {lowestPrices.map((price) => {
-            const product = MOCK_PRODUCTS.find(p => p.id === price.productId);
-            const inCart = product ? cart.includes(product.id) : false;
-            return (
-              <div 
-                key={price.id}
-                onClick={() => product && navigate(`/product/${product.id}`)}
-                className="bg-white dark:bg-vibe-card rounded-3xl p-4 border border-black/[0.03] shadow-vibe flex items-center gap-4 group active:scale-[0.98] transition-all cursor-pointer relative"
-              >
-                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-vibe-light dark:bg-vibe-dark shrink-0 relative">
-                  <img src={product?.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
-                  
-                  {/* Botón + para Agregar al Carrito (Pixel Perfect) */}
-                  <button 
-                    onClick={(e) => product && toggleCart(product.id, e)}
-                    className={`absolute bottom-1 right-1 z-20 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border transition-all duration-300 shadow-sm ${inCart ? 'bg-primary text-white border-primary' : 'bg-white/40 text-vibe-dark border-white/40'}`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">
-                      {inCart ? 'check' : 'add'}
-                    </span>
-                  </button>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-extrabold text-sm tracking-tight truncate max-w-[140px]">{product?.name}</h4>
-                    <div className="bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded-[4px] text-[7px] font-black uppercase tracking-wider whitespace-nowrap">
-                      Mejor Precio
-                    </div>
-                  </div>
-                  <p className="text-[10px] font-bold text-vibe-sub/40 uppercase tracking-widest truncate">{price.storeName}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs font-black text-green-600 dark:text-green-400 uppercase tracking-tighter mb-0.5">Bs.</p>
-                  <p className="text-2xl font-black text-green-600 dark:text-green-400 tracking-tighter leading-none tabular-nums">{price.priceBs.toLocaleString('es-VE')}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <div className="px-6 mt-20 mb-12 flex justify-center">
-        <button 
-          onClick={scrollToTop}
-          className="flex flex-col items-center gap-3 group animate-bounce"
-        >
-          <div className="w-14 h-14 rounded-full bg-vibe-dark dark:bg-white text-white dark:text-vibe-dark flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform border-4 border-primary/20">
-             <span className="material-symbols-outlined font-black text-2xl">expand_less</span>
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 group-hover:opacity-100 transition-opacity">Volver arriba</span>
-        </button>
-      </div>
-    </div>
-  );
-};
-
-export default Home;
+                <h4 className="text-xs font-ext

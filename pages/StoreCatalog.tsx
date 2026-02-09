@@ -31,6 +31,28 @@ const StoreCatalog: React.FC = () => {
     localStorage.setItem('vibe_cart', JSON.stringify(newCart));
   };
 
+  const handleShare = async (item: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareText = `¡Mira este precio en KASH! ⚡️\n\n📦 *${item.name}* (${item.presentation})\n💰 Precio: *Bs. ${item.priceBs.toLocaleString('es-VE')}*\n📍 Tienda: *${store.name}*\n\nCompara y ahorra con KASH.`;
+    const shareUrl = `${window.location.origin}/#/product/${item.id}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'KASH - Comparador de Precios',
+          text: shareText,
+          url: shareUrl
+        });
+      } catch (err) {
+        console.debug('Error sharing', err);
+      }
+    } else {
+      // Fallback a WhatsApp Web/App
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + "\n\nVer más: " + shareUrl)}`;
+      window.open(whatsappUrl, '_blank');
+    }
+  };
+
   const storeInventory = useMemo(() => {
     const prices = MOCK_PRICES.filter(p => p.storeName.toLowerCase().includes(store.name.toLowerCase()));
     
@@ -133,7 +155,15 @@ const StoreCatalog: React.FC = () => {
                       alt={item.name} 
                     />
                     
-                    {/* Botón + para agregar al carrito en el catálogo */}
+                    {/* Botón de Compartir (Pixel Perfect) */}
+                    <button 
+                      onClick={(e) => handleShare(item, e)}
+                      className="absolute top-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border border-white/40 bg-white/30 text-vibe-dark hover:bg-white/50 transition-all shadow-sm active:scale-90"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">share</span>
+                    </button>
+
+                    {/* Botón + para agregar al carrito */}
                     <button 
                       onClick={(e) => item.id && toggleCart(item.id, e)}
                       className={`absolute bottom-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border transition-all duration-300 shadow-sm ${inCart ? 'bg-primary text-white border-primary' : 'bg-white/60 text-vibe-dark border-white/40 hover:bg-white/80'}`}
